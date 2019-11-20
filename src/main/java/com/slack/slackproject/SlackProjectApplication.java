@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.slack.slackproject.repository.Person;
 import com.slack.slackproject.repository.PersonRepository;
+import com.slack.slackproject.service.SlackService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +59,11 @@ public class SlackProjectApplication {
             log.info("Lookup each person by name...");
             team.stream().forEach(person -> log.info(
                 "\t" + personRepository.findByName(person.getName()).toString()));
+
+            SlackService slackService = new SlackService();
+            //slackService.messagesByChannelId("C030E758M");
+            slackService.findUserById("U7CJ9AWJW");
+
         };
     }
 }
