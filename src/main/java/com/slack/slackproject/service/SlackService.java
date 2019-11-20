@@ -7,9 +7,10 @@ import com.hubspot.algebra.Result;
 import com.hubspot.slack.client.SlackClient;
 import com.hubspot.slack.client.methods.params.channels.ChannelsHistoryParams;
 import com.hubspot.slack.client.methods.params.channels.ChannelsListParams;
+import com.hubspot.slack.client.methods.params.conversations.ConversationMemberParams;
 import com.hubspot.slack.client.methods.params.users.UsersInfoParams;
-import com.hubspot.slack.client.models.SlackChannel;
-import com.hubspot.slack.client.models.response.SlackError;
+import com.hubspot.slack.client.models.response.users.UsersInfoResponse;
+import com.hubspot.slack.client.models.users.SlackUser;
 import com.slack.slackproject.client.BasicRuntimeConfig;
 
 public class SlackService {
@@ -38,11 +39,22 @@ public class SlackService {
         }));;
     }
 
-    public void findUserById(String userId) {
+    public CompletableFuture<SlackUser> findUserById(String userId) {
         UsersInfoParams usersInfoParams = UsersInfoParams.builder().setUserId(userId).build();
 
-        client.findUser(usersInfoParams).whenCompleteAsync((userInfo, slackError) -> {
-            System.out.println(userInfo.unwrapOrElseThrow().toString());
-        });
+        return client.findUser(usersInfoParams)
+            .thenApplyAsync(Result::unwrapOrElseThrow)
+            .thenApplyAsync(result -> result.getUser());
+    }
+
+    public CompletableFuture<List<String>> findUsersByChannelId(String channelId) {
+        ConversationMemberParams conversationMemberParams = ConversationMemberParams
+            .builder()
+            .setChannelId(channelId)
+            .build();
+
+        return client.getConversationMembers(conversationMemberParams)
+           .iterator().next().thenApply(Result::unwrapOrElseThrow);
+
     }
 }

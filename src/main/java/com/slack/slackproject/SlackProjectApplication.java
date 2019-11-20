@@ -3,8 +3,10 @@ package com.slack.slackproject;
 import java.util.Arrays;
 import java.util.List;
 
+import com.hubspot.slack.client.models.users.SlackUser;
 import com.slack.slackproject.repository.Person;
 import com.slack.slackproject.repository.PersonRepository;
+import com.slack.slackproject.service.MigrationService;
 import com.slack.slackproject.service.SlackService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,10 +62,15 @@ public class SlackProjectApplication {
             team.stream().forEach(person -> log.info(
                 "\t" + personRepository.findByName(person.getName()).toString()));
 
-            SlackService slackService = new SlackService();
-            //slackService.messagesByChannelId("C030E758M");
-            slackService.findUserById("U7CJ9AWJW");
+            MigrationService ms = new MigrationService();
+            List<Person>  people = ms.migrateUsers();
+            System.out.println("Number of people in IGZ" + people.size());
+            personRepository.saveAll(people);
 
+            //SlackService slackService = new SlackService();
+            //slackService.messagesByChannelId("C030E758M");
+            //slackService.findUserById("U7CJ9AWJW");
+            //slackService.findUsersByChannelId("C030E758M");
         };
     }
 }
