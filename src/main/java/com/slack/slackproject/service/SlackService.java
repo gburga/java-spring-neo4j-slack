@@ -8,8 +8,10 @@ import com.hubspot.slack.client.SlackClient;
 import com.hubspot.slack.client.methods.params.channels.ChannelsHistoryParams;
 import com.hubspot.slack.client.methods.params.channels.ChannelsListParams;
 import com.hubspot.slack.client.methods.params.conversations.ConversationMemberParams;
+import com.hubspot.slack.client.methods.params.conversations.ConversationsHistoryParams;
 import com.hubspot.slack.client.methods.params.users.UsersInfoParams;
-import com.hubspot.slack.client.models.response.users.UsersInfoResponse;
+import com.hubspot.slack.client.models.LiteMessage;
+import com.hubspot.slack.client.models.SlackChannel;
 import com.hubspot.slack.client.models.users.SlackUser;
 import com.slack.slackproject.client.BasicRuntimeConfig;
 
@@ -20,23 +22,31 @@ public class SlackService {
         this.client = BasicRuntimeConfig.getClient();
     }
 
-    public void channels() {
+    public CompletableFuture<List<SlackChannel>> channels() {
         ChannelsListParams channelParams = ChannelsListParams.builder().build();
 
-        client.listChannels(channelParams).forEach(p -> p.whenCompleteAsync((channels, slackError) -> {
-            channels.unwrapOrElseThrow().forEach(System.out::println);
-        }));
+        return client.listChannels(channelParams)
+            .iterator().next().thenApply(Result::unwrapOrElseThrow);
     }
 
-    public void messagesByChannelId(String channelId) {
+    public CompletableFuture<List<LiteMessage>> messagesByChannelId(String channelId) {
         ChannelsHistoryParams conversationParams = ChannelsHistoryParams
             .builder()
             .setChannelId(channelId)
             .build();
 
-        client.channelHistory(conversationParams).forEach(p -> p.whenCompleteAsync((users, slackError) -> {
-            users.unwrapOrElseThrow().forEach(System.out::println);
-        }));;
+        return client.channelHistory(conversationParams)
+            .iterator().next().thenApply(Result::unwrapOrElseThrow);
+    }
+
+    public CompletableFuture<List<LiteMessage>> conversations(String channelId) {
+        ConversationsHistoryParams conversationParams = ConversationsHistoryParams
+            .builder()
+            .setChannelId(channelId)
+            .build();
+
+        return client.getConversationHistory(conversationParams)
+            .iterator().next().thenApply(Result::unwrapOrElseThrow);
     }
 
     public CompletableFuture<SlackUser> findUserById(String userId) {
@@ -55,6 +65,12 @@ public class SlackService {
 
         return client.getConversationMembers(conversationMemberParams)
            .iterator().next().thenApply(Result::unwrapOrElseThrow);
+    }
+
+    public CompletableFuture<List<SlackUser>> findAllUsers() {
+        return client.listUsers()
+            .iterator().next().thenApply(Result::unwrapOrElseThrow);
 
     }
+
 }

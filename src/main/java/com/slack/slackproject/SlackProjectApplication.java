@@ -1,8 +1,14 @@
 package com.slack.slackproject;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import com.hubspot.slack.client.models.LiteMessage;
+import com.hubspot.slack.client.models.SlackChannel;
 import com.hubspot.slack.client.models.users.SlackUser;
 import com.slack.slackproject.repository.Person;
 import com.slack.slackproject.repository.PersonRepository;
@@ -29,48 +35,85 @@ public class SlackProjectApplication {
     @Bean
     CommandLineRunner demo(PersonRepository personRepository) {
         return args -> {
-
-            personRepository.deleteAll();
-
-            Person greg = new Person("Greg");
-            Person roy = new Person("Roy");
-            Person craig = new Person("Craig");
-
-            List<Person> team = Arrays.asList(greg, roy, craig);
-
-            log.info("Before linking up with Neo4j...");
-
-            team.stream().forEach(person -> log.info("\t" + person.toString()));
-
-            personRepository.save(greg);
-            personRepository.save(roy);
-            personRepository.save(craig);
-
-            greg = personRepository.findByName(greg.getName());
-            greg.worksWith(roy);
-            greg.worksWith(craig);
-            personRepository.save(greg);
-
-            roy = personRepository.findByName(roy.getName());
-            roy.worksWith(craig);
-            // We already know that roy works with greg
-            personRepository.save(roy);
-
-            // We already know craig works with roy and greg
-
-            log.info("Lookup each person by name...");
-            team.stream().forEach(person -> log.info(
-                "\t" + personRepository.findByName(person.getName()).toString()));
+            // USER MIGRATION
+            /*personRepository.deleteAll();
 
             MigrationService ms = new MigrationService();
             List<Person>  people = ms.migrateUsers();
-            System.out.println("Number of people in IGZ" + people.size());
-            personRepository.saveAll(people);
+            personRepository.saveAll(people);*/
 
-            //SlackService slackService = new SlackService();
-            //slackService.messagesByChannelId("C030E758M");
-            //slackService.findUserById("U7CJ9AWJW");
-            //slackService.findUsersByChannelId("C030E758M");
+            SlackService slackService = new SlackService();
+            List<SlackChannel> slackChannels = slackService.channels().get();
+            System.out.println("Channels found: " + slackChannels.size());
+
+            slackChannels.forEach(slackChannel -> {
+                System.out.println("Reading messages from [channelId=" + slackChannel.getId() + ", name=" + slackChannel.getName() + "]");
+
+                try {
+                    List<LiteMessage> messages = slackService.conversations(slackChannel.getId()).get();
+                    System.out.println("Number of messages found: " + messages.size());
+
+                    messages.forEach(message -> {
+                        //System.out.println(message);
+
+                        String slackUserId = message.getUser().orElse(null);
+                        if (slackUserId != null) {
+                            Person owner = personRepository.findBySlackId(slackUserId);
+
+                            if (owner != null) {
+                                // REPLIES
+                                message.getReplyUserIds().orElse(new ArrayList<String>())
+                                .forEach(replyUserId -> {
+                                    Person replyUser = personRepository.findBySlackId(replyUserId);
+
+                                    if (replyUser != null) {
+                                        owner.worksWith(replyUser);
+                                        personRepository.save(owner);
+                                        //System.out.println(owner.getName() + " works with: " + replyUser.getName());
+                                    }
+                                });
+
+                                // MENTIONS
+                                // <!channel> <!here> <@UC18J4V2A>
+                                // ignore channel_purpose channel_join
+                                String textMessage = message.getText();
+                                if (textMessage != ""
+                                    && !message.getSubtype().orElse("").equalsIgnoreCase("channel_join")
+                                    && !message.getSubtype().orElse("").equalsIgnoreCase("channel_purpose")
+                                ) {
+                                    Pattern p = Pattern.compile("\\<@(.*?)\\>");
+                                    Matcher matcher = p.matcher(textMessage);
+
+                                    //System.out.println("In the message: " + textMessage);
+                                    while(matcher.find()) {
+                                        String mentionedUserId = matcher.group(1);
+                                        Person mentionedUser = personRepository.findBySlackId(mentionedUserId);
+
+                                        if (mentionedUser != null) {
+                                            //System.out.println(owner.getName() + " mentions " + mentionedUser.getName());
+                                            owner.mentions(mentionedUser);
+                                        } else {
+                                            System.out.println("Mentioned user not found [id=" +  mentionedUserId + "]");
+                                        }
+                                    }
+
+                                    personRepository.save(owner);
+                                }
+                            } else {
+                                System.out.println("owner is null");
+                            }
+                        } else {
+                            System.out.println("slackUserId is null");
+                        }
+                    });
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            });
+
+            System.out.println("all channels have been read");
         };
     }
 }

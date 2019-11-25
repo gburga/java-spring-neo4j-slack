@@ -16,25 +16,20 @@ public class MigrationService {
     }
 
     public List<Person> migrateUsers() throws ExecutionException, InterruptedException {
-        List<String> userIds = slackService.findUsersByChannelId("C030E758M").get();
+        List<SlackUser> slackUsers = slackService.findAllUsers().get();
+        System.out.println("Number of people in IGZ for inserting to neo4j: " + slackUsers.size());
 
-        return userIds.stream().map(userId ->
-        {
-            SlackUser userInfo = SlackUser.builder().setRealName("no user information")
-                .setId("pru")
-                .setRealName("user not found").build();
-            try {
-                userInfo = slackService.findUserById(userId).get();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            }
+        return slackUsers.stream().map(slackUser ->
+            convertToPerson(slackUser)).collect(Collectors.toList());
+    }
 
-            System.out.println(userInfo);
-            Person p = new Person(userInfo.getRealName().get());
-            return p;
-        }).collect(Collectors.toList());
+    private Person convertToPerson(SlackUser slackUser) {
+        System.out.println(slackUser);
+        String slackId = slackUser.getId();
+        String username = slackUser.getUsername().orElse(slackId);
+        String realName = slackUser.getRealName().orElse(username);
+
+        return new Person(slackId, username, realName);
     }
 
 }
