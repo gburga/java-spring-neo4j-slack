@@ -36,11 +36,11 @@ public class SlackProjectApplication {
     CommandLineRunner demo(PersonRepository personRepository) {
         return args -> {
             // USER MIGRATION
-            /*personRepository.deleteAll();
+            personRepository.deleteAll();
 
             MigrationService ms = new MigrationService();
             List<Person>  people = ms.migrateUsers();
-            personRepository.saveAll(people);*/
+            personRepository.saveAll(people);
 
             SlackService slackService = new SlackService();
             List<SlackChannel> slackChannels = slackService.channels().get();
@@ -67,8 +67,8 @@ public class SlackProjectApplication {
                                     Person replyUser = personRepository.findBySlackId(replyUserId);
 
                                     if (replyUser != null) {
-                                        owner.worksWith(replyUser);
-                                        personRepository.save(owner);
+                                        replyUser.answers(owner);
+                                        personRepository.save(replyUser);
                                         //System.out.println(owner.getName() + " works with: " + replyUser.getName());
                                     }
                                 });
@@ -87,13 +87,17 @@ public class SlackProjectApplication {
                                     //System.out.println("In the message: " + textMessage);
                                     while(matcher.find()) {
                                         String mentionedUserId = matcher.group(1);
-                                        Person mentionedUser = personRepository.findBySlackId(mentionedUserId);
 
-                                        if (mentionedUser != null) {
-                                            //System.out.println(owner.getName() + " mentions " + mentionedUser.getName());
-                                            owner.mentions(mentionedUser);
-                                        } else {
-                                            System.out.println("Mentioned user not found [id=" +  mentionedUserId + "]");
+                                        if (mentionedUserId != null
+                                            && !mentionedUserId.equalsIgnoreCase(slackUserId)) { // To avoid self relation
+                                            Person mentionedUser = personRepository.findBySlackId(mentionedUserId);
+
+                                            if (mentionedUser != null) {
+                                                //System.out.println(owner.getName() + " mentions " + mentionedUser.getName());
+                                                owner.mentions(mentionedUser);
+                                            } else {
+                                                System.out.println("Mentioned user not found [id=" +  mentionedUserId + "]");
+                                            }
                                         }
                                     }
 

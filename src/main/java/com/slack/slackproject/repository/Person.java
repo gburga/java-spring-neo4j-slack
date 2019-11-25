@@ -18,6 +18,15 @@ public class Person {
     private String name;
     private String slackId;
     private String username;
+    /**
+     * Neo4j doesn't REALLY have bi-directional relationships. It just means when querying
+     * to ignore the direction of the relationship.
+     * https://dzone.com/articles/modelling-data-neo4j
+     */
+    @Relationship(type = "ANSWERS", direction = Relationship.UNDIRECTED)
+    public Set<Person> answeredPeople;
+    @Relationship(type = "MENTIONS", direction = Relationship.UNDIRECTED)
+    public Set<Person> mentionedPeople;
 
     private Person() {
         // Empty constructor required as of Neo4j API 2.0.5
@@ -29,24 +38,12 @@ public class Person {
         this.slackId = slackId;
     }
 
-    /**
-     * Neo4j doesn't REALLY have bi-directional relationships. It just means when querying
-     * to ignore the direction of the relationship.
-     * https://dzone.com/articles/modelling-data-neo4j
-     */
-    @Relationship(type = "TEAMMATE", direction = Relationship.UNDIRECTED)
-    public Set<Person> teammates;
-
-    public void worksWith(Person person) {
-        if (teammates == null) {
-            teammates = new HashSet<>();
+    public void answers(Person person) {
+        if (answeredPeople == null) {
+            answeredPeople = new HashSet<>();
         }
-        teammates.add(person);
+        answeredPeople.add(person);
     }
-
-    @Relationship(type = "MENTIONS", direction = Relationship.UNDIRECTED)
-    public Set<Person> mentionedPeople;
-
     public void mentions(Person person) {
         if (mentionedPeople == null) {
             mentionedPeople = new HashSet<>();
@@ -57,7 +54,7 @@ public class Person {
     public String toString() {
 
         return this.name + "'s teammates => "
-            + Optional.ofNullable(this.teammates).orElse(
+            + Optional.ofNullable(this.answeredPeople).orElse(
             Collections.emptySet()).stream()
             .map(Person::getName)
             .collect(Collectors.toList());
