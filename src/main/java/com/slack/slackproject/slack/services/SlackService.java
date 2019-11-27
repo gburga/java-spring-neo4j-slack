@@ -3,6 +3,8 @@ package com.slack.slackproject.slack.services;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import org.springframework.stereotype.Service;
+
 import com.hubspot.algebra.Result;
 import com.hubspot.slack.client.SlackClient;
 import com.hubspot.slack.client.methods.params.channels.ChannelsHistoryParams;
@@ -15,6 +17,7 @@ import com.hubspot.slack.client.models.SlackChannel;
 import com.hubspot.slack.client.models.users.SlackUser;
 import com.slack.slackproject.slack.client.BasicRuntimeConfig;
 
+@Service
 public class SlackService {
     private SlackClient client;
 
