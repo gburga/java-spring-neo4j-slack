@@ -1,7 +1,8 @@
-package com.slack.slackproject.repository;
+package com.slack.slackproject.database.repositories;
 
-import org.springframework.data.neo4j.annotation.Depth;
 import org.springframework.data.repository.CrudRepository;
+
+import com.slack.slackproject.database.domain.Person;
 
 public interface PersonRepository extends CrudRepository<Person, Long> {
 

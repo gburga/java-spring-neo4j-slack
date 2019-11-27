@@ -1,11 +1,12 @@
-package com.slack.slackproject.service;
+package com.slack.slackproject.migration.services;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import com.hubspot.slack.client.models.users.SlackUser;
-import com.slack.slackproject.repository.Person;
+import com.slack.slackproject.database.domain.Person;
+import com.slack.slackproject.slack.services.SlackService;
 
 public class MigrationService {
 

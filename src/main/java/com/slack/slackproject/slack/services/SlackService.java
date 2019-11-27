@@ -1,4 +1,4 @@
-package com.slack.slackproject.service;
+package com.slack.slackproject.slack.services;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -13,7 +13,7 @@ import com.hubspot.slack.client.methods.params.users.UsersInfoParams;
 import com.hubspot.slack.client.models.LiteMessage;
 import com.hubspot.slack.client.models.SlackChannel;
 import com.hubspot.slack.client.models.users.SlackUser;
-import com.slack.slackproject.client.BasicRuntimeConfig;
+import com.slack.slackproject.slack.client.BasicRuntimeConfig;
 
 public class SlackService {
     private SlackClient client;

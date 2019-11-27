@@ -1,4 +1,4 @@
-package com.slack.slackproject.client;
+package com.slack.slackproject.slack.client;
 
 import com.hubspot.slack.client.SlackClient;
 import com.hubspot.slack.client.SlackClientFactory;
@@ -12,7 +12,7 @@ public class BasicRuntimeConfig {
 
     public static SlackClientRuntimeConfig get() {
         return SlackClientRuntimeConfig.builder()
-            .setTokenSupplier(() -> "your token")
+            .setTokenSupplier(() -> "your app token")
             .build();
     }
 }

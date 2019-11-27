@@ -1,4 +1,4 @@
-package com.slack.slackproject.repository;
+package com.slack.slackproject.database.domain;
 
 import java.util.Collections;
 import java.util.HashSet;

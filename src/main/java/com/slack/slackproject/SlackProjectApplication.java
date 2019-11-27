@@ -7,11 +7,10 @@ import java.util.regex.Pattern;
 
 import com.hubspot.slack.client.models.LiteMessage;
 import com.hubspot.slack.client.models.SlackChannel;
-import com.slack.slackproject.repository.Channel;
-import com.slack.slackproject.repository.Person;
-import com.slack.slackproject.repository.PersonRepository;
-import com.slack.slackproject.service.MigrationService;
-import com.slack.slackproject.service.SlackService;
+import com.slack.slackproject.database.domain.Person;
+import com.slack.slackproject.database.repositories.PersonRepository;
+import com.slack.slackproject.migration.services.MigrationService;
+import com.slack.slackproject.slack.services.SlackService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +21,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 
 @SpringBootApplication
-@EnableNeo4jRepositories
+@EnableNeo4jRepositories("com.slack.slackproject.database.repositories")
 public class SlackProjectApplication {
     private final static Logger log = LoggerFactory.getLogger(SlackProjectApplication.class);
 
