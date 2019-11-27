@@ -1,15 +1,13 @@
 package com.slack.slackproject;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.hubspot.slack.client.models.LiteMessage;
 import com.hubspot.slack.client.models.SlackChannel;
-import com.hubspot.slack.client.models.users.SlackUser;
+import com.slack.slackproject.repository.Channel;
 import com.slack.slackproject.repository.Person;
 import com.slack.slackproject.repository.PersonRepository;
 import com.slack.slackproject.service.MigrationService;
@@ -46,15 +44,17 @@ public class SlackProjectApplication {
             List<SlackChannel> slackChannels = slackService.channels().get();
             System.out.println("Channels found: " + slackChannels.size());
 
-            slackChannels.forEach(slackChannel -> {
-                System.out.println("Reading messages from [channelId=" + slackChannel.getId() + ", name=" + slackChannel.getName() + "]");
+            //slackChannels.forEach(slackChannel -> {
+                //System.out.println("Reading messages from [channelId=" + slackChannel.getId() + ", name=" + slackChannel.getName() + "]");
 
-                try {
-                    List<LiteMessage> messages = slackService.conversations(slackChannel.getId()).get();
+//                try {
+                    String slackChannelId = "CCWQ5ABE1";
+                    //String slackChannelId = slackChannel.getId();
+                    List<LiteMessage> messages = slackService.conversations(slackChannelId).get();
                     System.out.println("Number of messages found: " + messages.size());
 
                     messages.forEach(message -> {
-                        //System.out.println(message);
+                        System.out.println(message);
 
                         String slackUserId = message.getUser().orElse(null);
                         if (slackUserId != null) {
@@ -69,7 +69,7 @@ public class SlackProjectApplication {
                                     if (replyUser != null) {
                                         replyUser.answers(owner);
                                         personRepository.save(replyUser);
-                                        //System.out.println(owner.getName() + " works with: " + replyUser.getName());
+                                        System.out.println(replyUser.getName() + " - answers -> " + owner.getName());
                                     }
                                 });
 
@@ -93,7 +93,7 @@ public class SlackProjectApplication {
                                             Person mentionedUser = personRepository.findBySlackId(mentionedUserId);
 
                                             if (mentionedUser != null) {
-                                                //System.out.println(owner.getName() + " mentions " + mentionedUser.getName());
+                                                System.out.println(owner.getName() + " - mentions -> " + mentionedUser.getName());
                                                 owner.mentions(mentionedUser);
                                             } else {
                                                 System.out.println("Mentioned user not found [id=" +  mentionedUserId + "]");
@@ -110,12 +110,12 @@ public class SlackProjectApplication {
                             System.out.println("slackUserId is null");
                         }
                     });
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                }
-            });
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                } catch (ExecutionException e) {
+//                    e.printStackTrace();
+//                }
+//            });
 
             System.out.println("all channels have been read");
         };

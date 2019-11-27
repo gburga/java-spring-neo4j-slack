@@ -24,7 +24,7 @@ public class MigrationService {
     }
 
     private Person convertToPerson(SlackUser slackUser) {
-        System.out.println(slackUser);
+        //System.out.println(slackUser);
         String slackId = slackUser.getId();
         String username = slackUser.getUsername().orElse(slackId);
         String realName = slackUser.getRealName().orElse(username);
